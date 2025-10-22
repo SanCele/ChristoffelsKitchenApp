@@ -72,7 +72,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
         <View style={styles.headerContainer}>
           {/* Back Button: Takes user back to home screen */}
           <TouchableOpacity onPress={() => setCurrentScreen('home')} style={styles.backButton}>
-            <Text style={styles.backButtonText}>← HOME</Text>
+            <Text style={styles.backButtonText}>HOME</Text>
           </TouchableOpacity>
           {/* Page Title: Shows the user what page they are on */}
           <Text style={styles.pageTitle}>LOGIN</Text>
