@@ -63,7 +63,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
     >
       {/* KeyboardAvoidingView: Automatically moves content up when keyboard appears */}
       {/* This prevents the keyboard from covering the input fields */}
-      {/* behavior: 'padding' for iOS, 'height' for Android */}
+      {}
       <KeyboardAvoidingView
         style={styles.overlay}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
