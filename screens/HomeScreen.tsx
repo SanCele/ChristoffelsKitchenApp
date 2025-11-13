@@ -181,18 +181,7 @@ function searchItems(items: Meal[], keyword: string): Meal[] {
   return results;
 }
 
-// Function: Geting featured items using FOR LOOP
-// Returns items within a specific price range (featured deals)
-function getFeaturedItems(items: Meal[], count: number = 3): Meal[] {
-  const featured: Meal[] = [];
-  const sorted = sortItemsByPrice(items, true);
-  
-  for (let i = 0; i < Math.min(count, sorted.length); i++) {
-    featured.push(sorted[i]);
-  }
-  
-  return featured;
-}
+// Featured deals helper removed
 
 // Function: Generating menu statistics using FOR LOOP
 // Creating comprehensive statistics report
@@ -309,7 +298,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
           <Text style={styles.dishDescription}>{item.description}</Text>
           <View style={styles.priceRow}>
             <Text style={styles.dishPrice}>{formatRand(parseRand(item.price))}</Text>
-            {user && (
+            {user && user.username !== 'chef' && (
               <TouchableOpacity
                 style={styles.addToCartBtn}
                 onPress={() => handleAddToCart(item)}
@@ -354,8 +343,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
   const mealCategories = Array.from(new Set(meals.map(m => m.category)));
   const beverageCategories = Array.from(new Set(beverages.map(b => b.category)));
 
-  // Get featured items using our function
-  const featuredItems = getFeaturedItems(filteredItems, 3);
+  // Featured deals removed
 
   // Count items by type
   const itemCounts = countItemsByType(filteredItems);
@@ -381,12 +369,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
         <View style={styles.navigationContainer}>
           {user ? (
             <>
-              <TouchableOpacity
-                style={[styles.navButton, styles.cartButton]}
-                onPress={() => setCurrentScreen('cart')}
-              >
-                <Text style={styles.cartButtonText}>VIEW CART</Text>
-              </TouchableOpacity>
+              {user.username !== 'chef' && (
+                <TouchableOpacity
+                  style={[styles.navButton, styles.cartButton]}
+                  onPress={() => setCurrentScreen('cart')}
+                >
+                  <Text style={styles.cartButtonText}>VIEW CART</Text>
+                </TouchableOpacity>
+              )}
               <TouchableOpacity
                 style={[styles.navButton, styles.logoutButton]}
                 onPress={() => {
@@ -453,14 +443,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({
             </TouchableOpacity>
           </View>
         </View>
-
-        {/* Featured Items Section */}
-        {featuredItems.length > 0 && (
-          <View style={styles.menuSection}>
-            <Text style={styles.sectionTitle}>Featured Deals</Text>
-            {featuredItems.map((item) => renderMenuItem(item))}
-          </View>
-        )}
 
          {/* Display meals grouped by course */}
         <View style={styles.menuSection}>

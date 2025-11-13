@@ -17,7 +17,7 @@ export type Meal = {
   id: string;
   name: string;
   description: string;
-  price: string;
+  price: string | number;
   type: 'meal' | 'beverage';
   category: string;
   image?: any;
@@ -44,7 +44,7 @@ export function calculateCartTotal(cart: CartItem[]): number {
   let total = 0;
   for (let i = 0; i < cart.length; i++) {
     const item = cart[i];
-    const price = parseFloat(item.price.replace('R', ''));
+  const price = parseFloat(String(item.price).replace('R', ''));
     total += price * item.quantity;
   }
   return total;
@@ -84,8 +84,8 @@ export function findMostExpensiveItem(items: Meal[]): Meal | null {
   let mostExpensive = items[0];
   let i = 1;
   while (i < items.length) {
-    const currentPrice = parseFloat(items[i].price.replace('R', ''));
-    const maxPrice = parseFloat(mostExpensive.price.replace('R', ''));
+  const currentPrice = parseFloat(String(items[i].price).replace('R', ''));
+  const maxPrice = parseFloat(String(mostExpensive.price).replace('R', ''));
     if (currentPrice > maxPrice) {
       mostExpensive = items[i];
     }
@@ -132,7 +132,7 @@ export function calculateAveragePrice(items: Meal[]): number {
   let total = 0;
   let i = 0;
   while (i < items.length) {
-    total += parseFloat(items[i].price.replace('R', ''));
+  total += parseFloat(String(items[i].price).replace('R', ''));
     i++;
   }
   return total / items.length;
@@ -196,7 +196,7 @@ export function validateMenuItem(item: Omit<Meal, 'id'>): { valid: boolean; erro
 export function applyDiscountToCart(cart: CartItem[], discountPercent: number): number {
   let discountedTotal = 0;
   for (let i = 0; i < cart.length; i++) {
-    const price = parseFloat(cart[i].price.replace('R', ''));
+  const price = parseFloat(String(cart[i].price).replace('R', ''));
     const itemTotal = price * cart[i].quantity;
     discountedTotal += itemTotal * (1 - discountPercent / 100);
   }
@@ -222,16 +222,16 @@ export function generateOrderSummary(cart: CartItem[]): string {
 // INITIAL MENU ITEMS
 
 const initialMenuItems: Meal[] = [
-  { id: '1', name: 'Tomato Soup', description: 'A classic creamy tomato soup.', price: 'R7.50', type: 'meal', category: 'Starters', image: require('./assets/Tomato Soup.jpg') },
-  { id: '2', name: 'Classic Bruschetta', description: 'Toasted bread with fresh tomatoes, garlic, and basil.', price: 'R38.00', type: 'meal', category: 'Starters', image: require('./assets/Classic Bruschetta.png') },
-  { id: '3', name: 'Grilled Ribeye Steak', description: 'Juicy ribeye steak grilled to perfection.', price: 'R25.00', type: 'meal', category: 'Mains', image: require('./assets/Grilled Ribeye Steak.png') },
-  { id: '4', name: 'Pan-seared Salmon', description: 'Fresh salmon fillet with a crispy skin.', price: 'R22.50', type: 'meal', category: 'Mains', image: require('./assets/Pan-seared Salmon.png') },
-  { id: '5', name: 'Classic Tiramisu', description: 'A coffee-flavored Italian dessert.', price: 'R20', type: 'meal', category: 'Desserts', image: require('./assets/Classic Tiramisu.jpg') },
-  { id: '6', name: 'Espresso', description: 'A strong shot of coffee.', price: 'R3.50', type: 'beverage', category: 'Hot Drinks', image: require('./_Images/Espresso.jpg') },
-  { id: '7', name: 'Real Espresso', description: 'A real strong shot of coffee.', price: 'R13.50', type: 'beverage', category: 'Hot Drinks', image: require('./_Images/Real Espresso.png') },
-  { id: '8', name: 'Fresh Orange Juice', description: 'Freshly squeezed orange juice.', price: 'R14.50', type: 'beverage', category: 'Cold Drinks', image: require('./_Images/Fresh Orange Juice.png') },
-  { id: '9', name: 'Craft Beer', description: 'A locally brewed craft beer.', price: 'R26.50', type: 'beverage', category: 'Alcoholic', image: require('./_Images/Craft Beer.jpg') },
-  { id: '10', name: 'Home Housewine', description: 'A glass of our finest house wine.', price: 'R37.00', type: 'beverage', category: 'Alcoholic', image: require('./_Images/Home Housewine.png') },
+  { id: '1', name: 'Tomato Soup', description: 'A classic creamy tomato soup.', price: 'R35.00', type: 'meal', category: 'Starters', image: require('./assets/Tomato Soup.jpg') },
+  { id: '2', name: 'Classic Bruschetta', description: 'Toasted bread with fresh tomatoes, garlic, and basil.', price: 'R56.99', type: 'meal', category: 'Starters', image: require('./assets/Classic Bruschetta.png') },
+  { id: '3', name: 'Grilled Ribeye Steak', description: 'Juicy ribeye steak grilled to perfection.', price: 'R250.00', type: 'meal', category: 'Mains', image: require('./assets/Grilled Ribeye Steak.png') },
+  { id: '4', name: 'Pan-seared Salmon', description: 'Fresh salmon fillet with a crispy skin.', price: 'R200.0', type: 'meal', category: 'Mains', image: require('./assets/Pan-seared Salmon.png') },
+  { id: '5', name: 'Classic Tiramisu', description: 'A coffee-flavored Italian dessert.', price: 'R105.00', type: 'meal', category: 'Desserts', image: require('./assets/Classic Tiramisu.jpg') },
+  { id: '6', name: 'Espresso', description: 'A strong shot of coffee.', price: 'R21.00', type: 'beverage', category: 'Hot Drinks', image: require('./_Images/Espresso.jpg') },
+  { id: '7', name: 'Real Espresso', description: 'A real strong shot of coffee.', price: 'R14.00', type: 'beverage', category: 'Hot Drinks', image: require('./_Images/Real Espresso.png') },
+  { id: '8', name: 'Fresh Orange Juice', description: 'Freshly squeezed orange juice.', price: 'R45.00', type: 'beverage', category: 'Cold Drinks', image: require('./_Images/Fresh Orange Juice.png') },
+  { id: '9', name: 'Craft Beer', description: 'A locally brewed craft beer.', price: 'R40.00', type: 'beverage', category: 'Alcoholic', image: require('./_Images/Craft Beer.jpg') },
+  { id: '10', name: 'Home Housewine', description: 'A glass of our finest house wine.', price: 'R45.00', type: 'beverage', category: 'Alcoholic', image: require('./_Images/Home Housewine.png') },
 ];
 
 // MAIN APP UI
@@ -261,6 +261,8 @@ export default function App() {
     
     const itemToAdd = { ...newItem, id: Date.now().toString() };
     setMenuItems(prev => [...prev, itemToAdd]);
+    // Return the created item so callers can keep a reference or store locally
+    return itemToAdd;
   }, []);
 
   const removeMenuItem = useCallback((itemId: string) => {

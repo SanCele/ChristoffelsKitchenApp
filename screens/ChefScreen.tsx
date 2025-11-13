@@ -218,7 +218,8 @@ interface ChefScreenProps {
   setCurrentScreen: (screen: string) => void;
   setUser: (user: User | null) => void;
   menuItems: Meal[];
-  addMenuItem: (newItem: Omit<Meal, 'id'>) => void;
+  // addMenuItem now returns the created Meal so callers can store it
+  addMenuItem: (newItem: Omit<Meal, 'id'>) => Meal | undefined;
   removeMenuItem: (itemId: string) => void;
 }
 
@@ -236,6 +237,8 @@ const ChefScreen: React.FC<ChefScreenProps> = ({
   const [price, setPrice] = useState('');
   const [category, setCategory] = useState('');
   const [type, setType] = useState<'meal' | 'beverage'>('meal');
+  // Local array to track items added during this session in the chef panel
+  const [addedItems, setAddedItems] = useState<Meal[]>([]);
 
   // DEFINED FUNCTION: Handle adding new item
   const handleAddItem = () => {
@@ -245,8 +248,12 @@ const ChefScreen: React.FC<ChefScreenProps> = ({
       return;
     }
     
-    // Add item to menu
-    addMenuItem({ name, description, price: `R${price}`, category, type });
+    // Add item to app-level menu (returns created item)
+    const created = addMenuItem({ name, description, price: `R${price}`, category, type });
+    // Save created item in a local array as well
+    if (created) {
+      setAddedItems(prev => [...prev, created]);
+    }
     
     // Reset form
     setName('');
