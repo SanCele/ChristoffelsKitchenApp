@@ -53,7 +53,6 @@ const AboutScreen: React.FC<AboutScreenProps> = ({ setCurrentScreen }) => (
 
 // Styles for the AboutScreen
 const styles = StyleSheet.create({
-  // Background image styling
   backgroundImage: {
     flex: 1,
     width: '100%',
@@ -62,7 +61,7 @@ const styles = StyleSheet.create({
   // Dark overlay on background
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.7)', // Semi-transparent dark overlay
+    backgroundColor: 'rgba(0,0,0,0.7)', 
   },
   // Header container at the top
   headerContainer: {
@@ -79,7 +78,7 @@ const styles = StyleSheet.create({
   },
   // Back button text
   backButtonText: {
-    color: '#FFD700', // Gold color
+    color: '#FFD700',
     fontSize: 24,
     fontWeight: 'bold',
   },
@@ -98,17 +97,17 @@ const styles = StyleSheet.create({
   },
   // Card containing about information
   aboutCard: {
-    backgroundColor: 'rgba(0,0,0,0.7)', // Dark semi-transparent background
-    borderRadius: 20, // Rounded corners
+    backgroundColor: 'rgba(0,0,0,0.7)', 
+    borderRadius: 20, 
     padding: 25,
-    borderColor: '#FFD700', // Gold border
+    borderColor: '#FFD700', 
     borderWidth: 1,
   },
   // Main title text
   aboutTitle: {
-    fontSize: 40,
+    fontSize: 32,
     fontWeight: 'bold',
-    color: '#FFD700', // Gold color
+    color: '#FFD700',
     marginBottom: 20,
     textAlign: 'center',
   },
@@ -116,16 +115,18 @@ const styles = StyleSheet.create({
   aboutSubheading: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#FFD700', // Gold color
+    color: '#FFD700', 
     marginTop: 20,
     marginBottom: 10,
+    textAlign: 'center',
   },
   // Regular text paragraphs
   aboutText: {
     fontSize: 24,
-    color: '#fff', // White text
+    color: '#fff',
     lineHeight: 24,
     marginBottom: 15,
+    textAlign: 'center',
   },
 });
 

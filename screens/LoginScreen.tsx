@@ -1,134 +1,391 @@
-// Import React and the useState hook for managing component state
 import React, { useState } from 'react';
-// Import React Native components for building the user interface
-// View: A container for other components
-// Text: Component for displaying text
-// TouchableOpacity: A touchable button that becomes slightly transparent when pressed
-// ImageBackground: Component that allows you to use an image as a background
-// ScrollView: A scrollable container for content that may not fit on one screen
-// TextInput: Component for text input (username and password fields)
-// KeyboardAvoidingView: Automatically adjusts content position when keyboard appears
-// Platform: Helps detect if the app is running on iOS or Android
-// StyleSheet: For creating organized and efficient styles
 import { View, Text, TouchableOpacity, ImageBackground, ScrollView, TextInput, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
-// Import the User type from App.tsx to ensure type consistency
 import { User } from '../App';
 
-// Define the props (properties) that this component expects to receive
-interface LoginScreenProps {
-  setCurrentScreen: (screen: string) => void;  // Function to change which screen is displayed
-  setUser: (user: User) => void;                // Function to set the logged-in user
+// GLOBAL VARIABLES for LoginScreen
+let totalLoginAttempts: number = 0;
+let successfulLogins: number = 0;
+let failedLogins: number = 0;
+let loginHistory: string[] = [];
+
+// UTILITY FUNCTIONS using FOR and WHILE loops
+
+// Function: Validate username length using FOR LOOP
+// Checks if username meets minimum length requirement
+
+function validateUsernameLength(username: string, minLength: number = 3): boolean {
+  let validChars = 0;
+  for (let i = 0; i < username.length; i++) {
+    if (username[i].trim() !== '') {
+      validChars++;
+    }
+  }
+  return validChars >= minLength;
 }
 
-// LoginScreen Component
-// This screen handles user authentication (login)
-// It accepts two types of users:
-// 1. Chef (username: "Christoffel", password: "Christoffel2025") - can manage menu items
-// 2. Customer (username: "customer", password: "customer123") - can browse and order
+// Function: Validating password strength using WHILE LOOP
+// Checks password complexity requirements
+ 
+function validatePasswordStrength(password: string): { valid: boolean; message: string } {
+  if (password.length < 6) {
+    return { valid: false, message: 'Password must be at least 6 characters' };
+  }
+  
+  let hasLetter = false;
+  let hasNumber = false;
+  let i = 0;
+  
+  while (i < password.length) {
+    const char = password[i];
+    if (char >= 'a' && char <= 'z' || char >= 'A' && char <= 'Z') {
+      hasLetter = true;
+    }
+    if (char >= '0' && char <= '9') {
+      hasNumber = true;
+    }
+    i++;
+  }
+  
+  if (!hasLetter) {
+    return { valid: false, message: 'Password must contain letters' };
+  }
+  if (!hasNumber) {
+    return { valid: false, message: 'Password must contain numbers' };
+  }
+  
+  return { valid: true, message: 'Password is strong' };
+}
+
+// Function: Count login attempts for a user using FOR LOOP
+// Searches through login history
+
+function countUserLoginAttempts(username: string): number {
+  let count = 0;
+  for (let i = 0; i < loginHistory.length; i++) {
+    if (loginHistory[i].includes(username)) {
+      count++;
+    }
+  }
+  return count;
+}
+
+//  Function: Check if user is locked out using WHILE LOOP
+// Checks last N failed attempts
+
+function isUserLockedOut(username: string, maxAttempts: number = 5): boolean {
+  let recentFailures = 0;
+  let i = loginHistory.length - 1;
+  
+  while (i >= 0 && recentFailures < maxAttempts) {
+    if (loginHistory[i].includes(username) && loginHistory[i].includes('FAILED')) {
+      recentFailures++;
+    } else if (loginHistory[i].includes(username) && loginHistory[i].includes('SUCCESS')) {
+      break; // Stop if there's a successful login
+    }
+    i--;
+  }
+  
+  return recentFailures >= maxAttempts;
+}
+
+
+// Function: Sanitize input using FOR LOOP
+// Removes potentially harmful characters
+ 
+function sanitizeInput(input: string): string {
+  const forbidden = ['<', '>', '"', "'", '/', '\\', ';'];
+  let sanitized = '';
+  
+  for (let i = 0; i < input.length; i++) {
+    let isForbidden = false;
+    for (let j = 0; j < forbidden.length; j++) {
+      if (input[i] === forbidden[j]) {
+        isForbidden = true;
+        break;
+      }
+    }
+    if (!isForbidden) {
+      sanitized += input[i];
+    }
+  }
+  
+  return sanitized;
+}
+
+// Function: Log login attempt (updates global variables)
+function logLoginAttempt(username: string, success: boolean): void {
+  totalLoginAttempts++;
+  
+  if (success) {
+    successfulLogins++;
+    loginHistory.push(`${username} - SUCCESS - ${new Date().toISOString()}`);
+  } else {
+    failedLogins++;
+    loginHistory.push(`${username} - FAILED - ${new Date().toISOString()}`);
+  }
+  
+  // Keep only last 50 entries to prevent memory issues
+  if (loginHistory.length > 50) {
+    loginHistory.shift();
+  }
+}
+
+// Function: Calculate success rate using global variables
+function calculateSuccessRate(): number {
+  if (totalLoginAttempts === 0) return 0;
+  return (successfulLogins / totalLoginAttempts) * 100;
+}
+
+//  Function: Generate login statistics report
+
+function generateLoginStats(): string {
+  return `
+// Login Statistics
+
+Total Attempts: ${totalLoginAttempts}
+Successful Logins: ${successfulLogins}
+Failed Logins: ${failedLogins}
+Success Rate: ${calculateSuccessRate().toFixed(1)}%
+Recent History: ${loginHistory.slice(-5).join(', ')}
+  `.trim();
+}
+
+// Function: Check credential match using FOR LOOP
+// Compares against valid credentials
+ 
+function checkCredentials(username: string, password: string): { valid: boolean; userType: string } {
+  const validCredentials = [
+    { user: 'christoffel', pass: 'Christoffel2025', type: 'chef' },
+    { user: 'customer', pass: 'customer123', type: 'customer' }
+  ];
+  
+  for (let i = 0; i < validCredentials.length; i++) {
+    if (username.toLowerCase() === validCredentials[i].user && password === validCredentials[i].pass) {
+      return { valid: true, userType: validCredentials[i].type };
+    }
+  }
+  
+  return { valid: false, userType: '' };
+}
+
+// Function: Formating username using WHILE LOOP
+// Removes extra spaces and formats properly
+
+function formatUsername(input: string): string {
+  let formatted = '';
+  let i = 0;
+  let lastWasSpace = false;
+  
+  while (i < input.length) {
+    const char = input[i];
+    if (char === ' ') {
+      if (!lastWasSpace && formatted.length > 0) {
+        formatted += ' ';
+        lastWasSpace = true;
+      }
+    } else {
+      formatted += char;
+      lastWasSpace = false;
+    }
+    i++;
+  }
+  
+  return formatted.trim();
+}
+
+// Function: Geting recent login activity using FOR LOOP
+// Returns last N login entries
+ 
+function getRecentActivity(count: number = 5): string[] {
+  const recent: string[] = [];
+  const startIndex = Math.max(0, loginHistory.length - count);
+  
+  for (let i = startIndex; i < loginHistory.length; i++) {
+    recent.push(loginHistory[i]);
+  }
+  
+  return recent;
+}
+
+// COMPONENT INTERFACE
+interface LoginScreenProps {
+  setCurrentScreen: (screen: string) => void;
+  setUser: (user: User) => void;
+}
+
+// LOGINSCREEN COMPONENT
 const LoginScreen: React.FC<LoginScreenProps> = ({
   setCurrentScreen,
   setUser,
 }) => {
-  // State: Stores the username entered by the user
-  // useState('') initializes it as an empty string
   const [username, setUsername] = useState('');
-  
-  // State: Stores the password entered by the user
   const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
-  // handleLogin Function
-  // This function runs when the user presses the LOGIN button
-  // It checks the credentials and logs the user in if they're correct
+// Enhanced handleLogin function using utility functions
+// Validates input, checks credentials, and logs attempt
   const handleLogin = () => {
-    // Check if the credentials match the chef account
-    // toLowerCase() makes the username check case-insensitive
-    if (username.toLowerCase() === 'christoffel' && password === 'Christoffel2025') {
-      setUser({ username: 'chef' });        // Set user type to 'chef'
-      setCurrentScreen('home');             // Navigate to home screen
-    // Check if the credentials match the customer account
-    } else if (username.toLowerCase() === 'customer' && password === 'customer123') {
-      setUser({ username: 'customer' });    // Set user type to 'customer'
-      setCurrentScreen('home');             // Navigate to home screen
+    // Clear previous error
+    setErrorMessage('');
+
+    // Sanitize inputs using FOR LOOP function
+    const cleanUsername = sanitizeInput(username);
+    const cleanPassword = sanitizeInput(password);
+
+    // Format username using WHILE LOOP function
+    const formattedUsername = formatUsername(cleanUsername);
+
+    // Validate username length using FOR LOOP function
+    if (!validateUsernameLength(formattedUsername)) {
+      setErrorMessage('Username must be at least 3 characters');
+      logLoginAttempt(formattedUsername, false);
+      return;
+    }
+
+    // Check if user is locked out using WHILE LOOP function
+    if (isUserLockedOut(formattedUsername)) {
+      setErrorMessage('Account locked due to too many failed attempts. Please try again later.');
+      return;
+    }
+
+    // Validate password strength using WHILE LOOP function
+    const passwordValidation = validatePasswordStrength(cleanPassword);
+    if (!passwordValidation.valid) {
+      setErrorMessage(passwordValidation.message);
+      logLoginAttempt(formattedUsername, false);
+      return;
+    }
+
+    // Check credentials using FOR LOOP function
+    const credentialCheck = checkCredentials(formattedUsername, cleanPassword);
+    
+    if (credentialCheck.valid) {
+      // Log successful login
+      logLoginAttempt(formattedUsername, true);
+      
+      // Set user and navigate to home
+      setUser({ username: credentialCheck.userType });
+      
+      // Log statistics to console
+      console.log(generateLoginStats());
+      console.log(`User "${formattedUsername}" logged in as ${credentialCheck.userType}`);
+      
+      setCurrentScreen('home');
     } else {
-      // If neither set of credentials match, show an error message
-      alert('Invalid username or password.');
+      // Log failed login
+      logLoginAttempt(formattedUsername, false);
+      
+      // Show error message
+      setErrorMessage('Invalid username or password.');
+      
+      // Log current stats
+      console.log(generateLoginStats());
     }
   };
 
+  // Function: Handle username input change
+  // Updates state and provides real-time validation
+  const handleUsernameChange = (text: string) => {
+    setUsername(text);
+    setErrorMessage(''); // Clear error when user types
+  };
+
+
+  // Function: Handles password input change
+  // Updates state and provides real-time validation
+
+  const handlePasswordChange = (text: string) => {
+    setPassword(text);
+    setErrorMessage(''); // Clear error when user types
+  };
+
   return (
-    // ImageBackground: Display a background image behind all the content
     <ImageBackground
-      source={require('../assets/Rest of the screen background.png')} // Background image file
-      style={styles.backgroundImage} // Style to make it fill the screen
+      source={require('../assets/Rest of the screen background.png')}
+      style={styles.backgroundImage}
     >
-      {/* KeyboardAvoidingView: Automatically moves content up when keyboard appears */}
-      {/* This prevents the keyboard from covering the input fields */}
-      {}
       <KeyboardAvoidingView
         style={styles.overlay}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        {/* Header Container: Top section with back button and page title */}
+        {/* Header Container */}
         <View style={styles.headerContainer}>
-          {/* Back Button: Takes user back to home screen */}
           <TouchableOpacity onPress={() => setCurrentScreen('home')} style={styles.backButton}>
             <Text style={styles.backButtonText}>HOME</Text>
           </TouchableOpacity>
-          {/* Page Title: Shows the user what page they are on */}
           <Text style={styles.pageTitle}>LOGIN</Text>
         </View>
 
-        {/* ScrollView: Makes the content scrollable if needed */}
-        {/* showsVerticalScrollIndicator={false} hides the scroll bar */}
         <ScrollView style={styles.contentContainer} showsVerticalScrollIndicator={false}>
-          
-          {/* Login Card: The main container for the login form */}
+          {/* Login Card */}
           <View style={styles.chefCard}>
-            {/* Welcome Message */}
             <Text style={styles.chefTitle}>Welcome!</Text>
-            {/* Instructions for the user */}
             <Text style={styles.chefSubtitle}>Please enter your credentials to login</Text>
 
-            {/* Form Container: Wraps all form elements */}
+            {/* Login Statistics Display */}
+            <View style={styles.statsContainer}>
+              <Text style={styles.statsText}>Login Attempts: {totalLoginAttempts}</Text>
+              <Text style={styles.statsText}>Success Rate: {calculateSuccessRate().toFixed(1)}%</Text>
+            </View>
+
             <View style={styles.formContainer}>
-              
-              {/* Username Input Group */}
+              {/* Username Input */}
               <View style={styles.inputGroup}>
-                {/* Label for the username field */}
                 <Text style={styles.inputLabel}>Username</Text>
-                {/* TextInput: Field where user types their username */}
                 <TextInput
                   style={styles.textInput}
-                  value={username}                          // Current value from state
-                  onChangeText={setUsername}                // Update state when user types
-                  placeholder="customer or chef"            // Hint text when field is empty
-                  placeholderTextColor="#999"               // Gray color for hint text
-                  autoCapitalize="none"                     // Don't automatically capitalize
-                  autoCorrect={false}                       // Don't auto-correct the username
+                  value={username}
+                  onChangeText={handleUsernameChange}
+                  placeholder="customer or Christoffel"
+                  placeholderTextColor="#999"
+                  autoCapitalize="none"
+                  autoCorrect={false}
                 />
+                {username.length > 0 && (
+                  <Text style={styles.helperText}>
+                    Length: {username.length} characters
+                  </Text>
+                )}
               </View>
 
-              {/* Password Input Group */}
+              {/* Password Input */}
               <View style={styles.inputGroup}>
-                {/* Label for the password field */}
                 <Text style={styles.inputLabel}>Password</Text>
-                {/* TextInput: Field where user types their password */}
                 <TextInput
                   style={styles.textInput}
-                  value={password}                          // Current value from state
-                  onChangeText={setPassword}                // Update state when user types
-                  placeholder="customer123 or chef123"      // Hint text when field is empty
-                  placeholderTextColor="#999"               // Gray color for hint text
-                  secureTextEntry={true}                    // Hide the password (show dots/asterisks)
-                  autoCapitalize="none"                     // Don't automatically capitalize
-                  autoCorrect={false}                       // Don't auto-correct the password
+                  value={password}
+                  onChangeText={handlePasswordChange}
+                  placeholder="customer123 or Christoffel2025"
+                  placeholderTextColor="#999"
+                  secureTextEntry={true}
+                  autoCapitalize="none"
+                  autoCorrect={false}
                 />
+                {password.length > 0 && (
+                  <Text style={styles.helperText}>
+                    Strength: {password.length >= 6 ? 'Good' : 'Too short'}
+                  </Text>
+                )}
               </View>
 
-              {/* Login Button: When pressed, it calls handleLogin function */}
+              {/* Error Message Display */}
+              {errorMessage !== '' && (
+                <View style={styles.errorContainer}>
+                  <Text style={styles.errorText}>{errorMessage}</Text>
+                </View>
+              )}
+
+              {/* Login Button */}
               <TouchableOpacity style={styles.addMealButton} onPress={handleLogin}>
                 <Text style={styles.addMealButtonText}>LOGIN</Text>
               </TouchableOpacity>
+
+              {/* Hint Text */}
+              <View style={styles.hintContainer}>
+                <Text style={styles.hintText}>Valid Credentials:</Text>
+                <Text style={styles.hintText}>- Chef: Christoffel / Christoffel2025</Text>
+                <Text style={styles.hintText}>- Customer: customer / customer123</Text>
+              </View>
             </View>
           </View>
         </ScrollView>
@@ -137,114 +394,141 @@ const LoginScreen: React.FC<LoginScreenProps> = ({
   );
 };
 
-// Styles: Define how each component should look
+// Styles for the login screen
 const styles = StyleSheet.create({
-  // backgroundImage: Makes the background image fill the entire screen
   backgroundImage: {
-    flex: 1,              // Take up all available space
-    width: '100%',        // Full width of the screen
-    height: '100%',       // Full height of the screen
+    flex: 1,
+    width: '100%',
+    height: '100%',
   },
-  // overlay: A dark semi-transparent layer on top of the background
   overlay: {
-    ...StyleSheet.absoluteFillObject,      // Spread to fill parent completely
-    backgroundColor: 'rgba(0,0,0,0.7)',     // Black with 70% opacity (semi-transparent)
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.7)',
   },
-  // headerContainer: Container for the back button and page title
   headerContainer: {
-    flexDirection: 'row',                   // Arrange children horizontally (side by side)
-    justifyContent: 'space-between',        // Spread children apart with space between
-    alignItems: 'center',                   // Center children vertically
-    paddingHorizontal: 20,                  // 20 units of space on left and right
-    paddingTop: Platform.OS === 'ios' ? 50 : 40,  // More space on top for iOS (for notch)
-    paddingBottom: 15,                      // 15 units of space on bottom
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'ios' ? 50 : 40,
+    paddingBottom: 15,
   },
-  // backButton: Clickable area for the back button
   backButton: {
-    padding: 10,          // 10 units of space inside the button (makes it easier to press)
+    padding: 10,
   },
-  // backButtonText: Style for the text inside the back button
   backButtonText: {
-    color: '#fff',        // White color for visibility
-    fontSize: 24,         // Text size
-    fontWeight: 'bold',   // Make the text thick and bold
+    color: '#fff',
+    fontSize: 24,
+    fontWeight: 'bold',
   },
-  // pageTitle: Style for the "LOGIN" title
   pageTitle: {
-    color: '#fff',        // White color for visibility
-    fontSize: 40,         // Large text size for prominence
-    fontWeight: 'bold',   // Bold text for emphasis
-    flex: 1,              // Take up remaining space
-    textAlign: 'center',  // Center the text horizontally
+    color: '#fff',
+    fontSize: 40,
+    fontWeight: 'bold',
+    flex: 1,
+    textAlign: 'center',
   },
-  // contentContainer: Container for the scrollable content
   contentContainer: {
-    flex: 1,              // Take up all available space
-    padding: 20,          // 20 units of space on all sides
+    flex: 1,
+    padding: 20,
   },
-  // chefCard: The main login form container
   chefCard: {
-    backgroundColor: 'rgba(0,0,0,0.7)',  // Semi-transparent black background
-    borderRadius: 20,                     // Rounded corners (20 units)
-    padding: 25,                          // 25 units of space inside the card
-    borderColor: '#FFD700',               // Gold border color
-    borderWidth: 1,                       // 1 unit thick border
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderRadius: 20,
+    padding: 25,
+    borderColor: '#FFD700',
+    borderWidth: 1,
   },
-  // chefTitle: Style for the "Welcome!" heading
   chefTitle: {
-    fontSize: 40,         // Very large text
-    fontWeight: 'bold',   // Bold for emphasis
-    color: '#FFD700',     // Gold color
-    marginBottom: 10,     // 10 units of space below
-    textAlign: 'center',  // Center the text
+    fontSize: 40,
+    fontWeight: 'bold',
+    color: '#FFD700',
+    marginBottom: 10,
+    textAlign: 'center',
   },
-  // chefSubtitle: Style for the instructions text
   chefSubtitle: {
-    fontSize: 32,         // Large text size
-    color: '#fff',        // White color
-    marginBottom: 20,     // 20 units of space below
-    textAlign: 'center',  // Center the text
+    fontSize: 32,
+    color: '#fff',
+    marginBottom: 20,
+    textAlign: 'center',
   },
-  // formContainer: Container that wraps all form elements
+  statsContainer: {
+    backgroundColor: 'rgba(255, 215, 0, 0.1)',
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#FFD700',
+  },
+  statsText: {
+    color: '#FFD700',
+    fontSize: 24,
+    marginBottom: 5,
+  },
   formContainer: {
-    width: '100%',        // Take up full width of parent
+    width: '100%',
   },
-  // inputGroup: Container for each input field (label + text input)
   inputGroup: {
-    marginBottom: 20,     // 20 units of space below each input group
+    marginBottom: 20,
   },
-  // inputLabel: Style for the labels ("Username", "Password")
   inputLabel: {
-    fontSize: 18,         // Text size
-    color: '#FFD700',     // Gold color to match theme
-    marginBottom: 10,     // 10 units of space below the label
+    fontSize: 24,
+    color: '#FFD700',
+    marginBottom: 10,
   },
-  // textInput: Style for the text input fields (username and password)
   textInput: {
-    backgroundColor: 'rgba(0,0,0,0.3)',  // Semi-transparent black background
-    color: '#fff',                        // White text color
-    borderRadius: 10,                     // Rounded corners
-    paddingHorizontal: 15,                // 15 units of space on left and right inside the field
-    paddingVertical: 12,                  // 12 units of space on top and bottom
-    fontSize: 24,                         // Text size
-    borderWidth: 1,                       // 1 unit thick border
-    borderColor: '#FFD700',               // Gold border color
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    color: '#fff',
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    fontSize: 24,
+    borderWidth: 1,
+    borderColor: '#FFD700',
   },
-  // addMealButton: Style for the LOGIN button
+  helperText: {
+    color: '#999',
+    fontSize: 24,
+    marginTop: 5,
+    marginLeft: 5,
+  },
+  errorContainer: {
+    backgroundColor: 'rgba(196, 30, 58, 0.3)',
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#C41E3A',
+  },
+  errorText: {
+    color: '#ff6b6b',
+    fontSize: 24,
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
   addMealButton: {
-    backgroundColor: '#C41E3A',  // Dark red background color
-    paddingVertical: 18,          // 18 units of space on top and bottom
-    borderRadius: 10,             // Rounded corners
-    alignItems: 'center',         // Center the text horizontally
-    marginTop: 15,                // 15 units of space above the button
+    backgroundColor: '#C41E3A',
+    paddingVertical: 18,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 15,
   },
-  // addMealButtonText: Style for the text inside the LOGIN button
   addMealButtonText: {
-    color: '#fff',        // White text color
-    fontSize: 24,         // Text size
-    fontWeight: 'bold',   // Bold text
+    color: '#fff',
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  hintContainer: {
+    marginTop: 20,
+    padding: 15,
+    backgroundColor: 'rgba(255, 215, 0, 0.05)',
+    borderRadius: 10,
+  },
+  hintText: {
+    color: '#999',
+    fontSize: 24,
+    marginBottom: 5,
   },
 });
 
-// Export the LoginScreen component so it can be used in other files
 export default LoginScreen;

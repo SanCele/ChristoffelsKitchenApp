@@ -1,15 +1,4 @@
-// Import React and the useState hook for managing component state
 import React, { useState } from 'react';
-// Import React Native components for building the user interface
-// View: A container for other components
-// Text: Component for displaying text
-// TouchableOpacity: A touchable button that becomes slightly transparent when pressed
-// ImageBackground: Component that allows you to use an image as a background
-// ScrollView: A scrollable container for content that may not fit on one screen
-// TextInput: Component for text input (item details)
-// KeyboardAvoidingView: Automatically adjusts content position when keyboard appears
-// Platform: Helps detect if the app is running on iOS or Android
-// StyleSheet: For creating organized and efficient styles
 import {
   View,
   Text,
@@ -20,25 +9,220 @@ import {
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
+  Alert,
 } from 'react-native';
-// Import types from App.tsx for type safety
-import { Meal, User } from '../App';
 
-// Define the props (properties) that this component expects to receive
-interface ChefScreenProps {
-  setCurrentScreen: (screen: string) => void;      // Function to change screens
-  setUser: (user: User | null) => void;             // Function to set/clear user (for logout)
-  menuItems: Meal[];                                 // Array of all menu items
-  addMenuItem: (newItem: Omit<Meal, 'id'>) => void; // Function to add a new item (without id)
-  removeMenuItem: (itemId: string) => void;          // Function to remove an item by its id
+// Defining types for this screen
+interface Meal {
+  id: string;
+  name: string;
+  description: string;
+  price: string | number;
+  category: string;
+  type: 'meal' | 'beverage';
 }
 
-// ChefScreen Component
-// This is the admin panel where the chef can:
-// 1. Add new menu items (meals or beverages)
-// 2. View all existing menu items
-// 3. Remove menu items
-// 4. Logout
+interface User {
+  username: string;
+  role: string;
+}
+
+
+
+// FUNCTIONS for price Parsing/Formatting 
+function parseRand(value: string | number): number {
+  if (typeof value === 'number') return value;
+  if (!value) return 0;
+  const cleaned = value.toString().replace(/[^0-9.\-\.]/g, '');
+  const parsed = parseFloat(cleaned);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function formatRand(amount: number): string {
+  if (!Number.isFinite(amount)) amount = 0;
+  return `R${amount.toFixed(2)}`;
+}
+
+// FOR LOOP 
+// Function: Calculating total menu value using for loop
+function calculateTotalMenuValue(items: Meal[]): number {
+  let total = 0;
+  // FOR LOOP: Iterate through all items
+  for (let i = 0; i < items.length; i++) {
+    total += parseRand(items[i].price);
+  }
+  return total;
+}
+
+// Function: Calculating average price using for loop
+function calculateAveragePrice(items: Meal[]): number {
+  if (items.length === 0) return 0;
+  let sum = 0;
+  // FOR LOOP: Sum of all prices
+  for (let i = 0; i < items.length; i++) {
+    sum += parseRand(items[i].price);
+  }
+  return sum / items.length;
+}
+
+// Function: Finding most expensive item using for loop
+function findMostExpensiveItem(items: Meal[]): Meal | null {
+  if (items.length === 0) return null;
+  let maxItem = items[0];
+  let maxPrice = parseRand(items[0].price);
+  
+  // FOR LOOP: Comparing all items
+  for (let i = 1; i < items.length; i++) {
+    const currentPrice = parseRand(items[i].price);
+    if (currentPrice > maxPrice) {
+      maxPrice = currentPrice;
+      maxItem = items[i];
+    }
+  }
+  return maxItem;
+}
+
+// WHILE LOOP 
+// Function: Finding items by category using while loop
+function findItemsByCategory(items: Meal[], searchCategory: string): Meal[] {
+  const results: Meal[] = [];
+  let index = 0;
+  
+  // WHILE LOOP: Search through items
+  while (index < items.length) {
+    if (items[index].category.toLowerCase() === searchCategory.toLowerCase()) {
+      results.push(items[index]);
+    }
+    index++;
+  }
+  return results;
+}
+
+// Function: Counting items in price range using while loop
+function countItemsInPriceRange(items: Meal[], min: number, max: number): number {
+  let count = 0;
+  let index = 0;
+  
+  // WHILE LOOP: Counting items within range
+  while (index < items.length) {
+    const price = parseRand(items[index].price);
+    if (price >= min && price <= max) {
+      count++;
+    }
+    index++;
+  }
+  return count;
+}
+
+// Function: Finding first item above price using while loop
+function findFirstItemAbovePrice(items: Meal[], threshold: number): Meal | null {
+  let index = 0;
+  
+  // WHILE LOOP: Searching until condition met
+  while (index < items.length) {
+    if (parseRand(items[index].price) > threshold) {
+      return items[index];
+    }
+    index++;
+  }
+  return null;
+}
+
+//  NESTED FOR LOOP 
+// Function: Category summary using nested loops
+function getCategorySummary(items: Meal[]): string {
+  const categories = ['Starters', 'Mains', 'Desserts', 'Beverages'];
+  let summary = '';
+  
+  // FOR LOOP: Iterating through categories
+  for (let i = 0; i < categories.length; i++) {
+    let categoryCount = 0;
+    let categoryTotal = 0;
+    
+    // FOR LOOP: Counting items in each category
+    for (let j = 0; j < items.length; j++) {
+      if (items[j].category === categories[i]) {
+        categoryCount++;
+        categoryTotal += parseRand(items[j].price);
+      }
+    }
+    
+    if (categoryCount > 0) {
+      summary += `${categories[i]}: ${categoryCount} items (${formatRand(categoryTotal)})\n`;
+    }
+  }
+  
+  return summary || 'No items in standard categories';
+}
+
+// Function: Creating price comparison matrix
+function generatePriceComparison(items: Meal[]): string {
+  const limit = Math.min(items.length, 3); // Limit to 3x3 for readability
+  let matrix = 'Price Differences (first 3 items):\n\n';
+  
+  if (limit === 0) return 'No items to compare';
+  
+  // NESTED FOR LOOPS: Creating comparison matrix
+  for (let i = 0; i < limit; i++) {
+    let row = '';
+    for (let j = 0; j < limit; j++) {
+      const price1 = parseRand(items[i].price);
+      const price2 = parseRand(items[j].price);
+      const diff = Math.abs(price1 - price2);
+      row += `${formatRand(diff)} `;
+    }
+    matrix += row + '\n';
+  }
+  
+  return matrix;
+}
+
+// Function: Finding similar priced items using nested loops
+function findSimilarPricedItems(items: Meal[], tolerance: number): string {
+  let pairs = '';
+  
+  // NESTED FOR LOOPS: Comparing all pairs
+  for (let i = 0; i < items.length; i++) {
+    for (let j = i + 1; j < items.length; j++) {
+      const price1 = parseRand(items[i].price);
+      const price2 = parseRand(items[j].price);
+      const diff = Math.abs(price1 - price2);
+      
+      if (diff <= tolerance) {
+        pairs += `${items[i].name} & ${items[j].name} (Diff: ${formatRand(diff)})\n`;
+      }
+    }
+  }
+  
+  return pairs || 'No similar priced items found';
+}
+
+// FUNCTIONS for validation
+// Function: Validating price input
+function isValidPrice(price: string): boolean {
+  const numPrice = parseFloat(price);
+  return !isNaN(numPrice) && numPrice > 0;
+}
+
+// Function: Validating all form fields
+function validateFormFields(name: string, description: string, price: string, category: string): boolean {
+  if (!name || name.trim().length === 0) return false;
+  if (!description || description.trim().length === 0) return false;
+  if (!category || category.trim().length === 0) return false;
+  if (!isValidPrice(price)) return false;
+  return true;
+}
+
+// COMPONENT PROPS INTERFACE 
+interface ChefScreenProps {
+  setCurrentScreen: (screen: string) => void;
+  setUser: (user: User | null) => void;
+  menuItems: Meal[];
+  addMenuItem: (newItem: Omit<Meal, 'id'>) => void;
+  removeMenuItem: (itemId: string) => void;
+}
+
+// CHEF SCREEN UI
 const ChefScreen: React.FC<ChefScreenProps> = ({
   setCurrentScreen,
   setUser,
@@ -46,111 +230,120 @@ const ChefScreen: React.FC<ChefScreenProps> = ({
   addMenuItem,
   removeMenuItem,
 }) => {
-  // State: Stores the name of the new item being added
+  // State for form inputs
   const [name, setName] = useState('');
-  
-  // State: Stores the description of the new item
   const [description, setDescription] = useState('');
-  
-  // State: Stores the price of the new item (as a string before adding "R" prefix)
   const [price, setPrice] = useState('');
-  
-  // State: Stores the category of the new item (e.g., "Starters", "Mains")
   const [category, setCategory] = useState('');
-  
-  // State: Stores whether the item is a 'meal' or 'beverage'
   const [type, setType] = useState<'meal' | 'beverage'>('meal');
 
-  // handleAddItem Function
-  // This function runs when the chef presses the "ADD ITEM" button
-  // It validates the form and adds the new item to the menu
+  // DEFINED FUNCTION: Handle adding new item
   const handleAddItem = () => {
-    // Check if all fields are filled
-    if (!name || !description || !price || !category) {
-      alert('Please fill all fields correctly.');
-      return; // Exit the function if validation fails
+    // Validating using defined function
+    if (!validateFormFields(name, description, price, category)) {
+      Alert.alert('Validation Error', 'Please fill all fields correctly with valid data.');
+      return;
     }
     
-    // Call the addMenuItem function passed from App.tsx
-    // Add "R" prefix to the price for South African Rands
+    // Add item to menu
     addMenuItem({ name, description, price: `R${price}`, category, type });
     
-    // Reset all form fields to empty after adding the item
+    // Reset form
     setName('');
     setDescription('');
     setPrice('');
     setCategory('');
+    
+    Alert.alert('Success', 'Item added successfully!');
   };
 
-  // handleLogout Function
-  // This function logs out the chef and returns to the home screen
+  // FUNCTION: Handle removing item
+  const handleRemoveItem = (itemId: string) => {
+    removeMenuItem(itemId);
+    Alert.alert('Success', 'Item removed!');
+  };
+
+  // FUNCTION: Handle logout
   const handleLogout = () => {
-    setUser(null);              // Clear the current user
-    setCurrentScreen('home');   // Navigate back to home screen
+    // Logout: clear user and return home
+    setUser(null);
+    setCurrentScreen('home');
   };
 
-  // renderItemList Function
-  // This function displays a list of menu items (either meals or beverages)
-  // It takes a title and an array of items to display
-  const renderItemList = (title: string, items: Meal[]) => (
-    <View style={styles.managementSection}>
-      {/* Section title (e.g., "Meals" or "Beverages") */}
-      <Text style={styles.managementCategoryTitle}>{title}</Text>
-      
-      {/* Loop through each item and display it */}
-      {items.map(item => (
+  // FUNCTION: Render item list with remove functionality
+  const renderItemList = (title: string, items: Meal[]) => {
+    // Use FOR LOOP to render items
+    const itemElements = [];
+    
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      itemElements.push(
         <View key={item.id} style={styles.mealItem}>
-          {/* Item information container */}
           <View style={styles.mealInfo}>
             <Text style={styles.mealName}>{item.name}</Text>
             <Text style={styles.mealDescription}>{item.description}</Text>
-            <Text style={styles.mealPrice}>{item.price}</Text>
+            <Text style={styles.mealPrice}>{formatRand(parseRand(item.price))}</Text>
+            <Text style={styles.mealCategory}>Category: {item.category}</Text>
           </View>
-          {/* Remove button - deletes the item when pressed */}
           <TouchableOpacity
             style={styles.removeMealButton}
-            onPress={() => removeMenuItem(item.id)}
+            onPress={() => handleRemoveItem(item.id)}
           >
             <Text style={styles.removeMealButtonText}>REMOVE</Text>
           </TouchableOpacity>
         </View>
-      ))}
-    </View>
-  );
+      );
+    }
+    
+    return (
+      <View style={styles.managementSection}>
+        <Text style={styles.managementCategoryTitle}>{title}</Text>
+        {items.length === 0 ? (
+          <Text style={styles.emptyMessage}>No items in this category</Text>
+        ) : (
+          <>{itemElements}</>
+        )}
+      </View>
+    );
+  };
   
-  // Filter menuItems to separate meals and beverages
-  const meals = menuItems.filter(item => item.type === 'meal');
-  const beverages = menuItems.filter(item => item.type === 'beverage');
+  // Filter menuItems using WHILE LOOP
+  const meals: Meal[] = [];
+  const beverages: Meal[] = [];
+  let idx = 0;
+  
+  while (idx < menuItems.length) {
+    if (menuItems[idx].type === 'meal') {
+      meals.push(menuItems[idx]);
+    } else {
+      beverages.push(menuItems[idx]);
+    }
+    idx++;
+  }
 
   return (
-    // ImageBackground: Display a background image behind all the content
     <ImageBackground
-      source={require('../assets/Rest of the screen background.png')}
+      source={{ uri: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200' }}
       style={styles.backgroundImage}
     >
-      {/* KeyboardAvoidingView: Automatically moves content up when keyboard appears */}
       <KeyboardAvoidingView
         style={styles.overlay}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        {/* Header Container: Top section with navigation and logout */}
+        {/* Header */}
         <View style={styles.headerContainer}>
-          {/* Back Button: Returns to home screen */}
           <TouchableOpacity onPress={() => setCurrentScreen('home')} style={styles.backButton}>
-            <Text style={styles.backButtonText}>← HOME</Text>
+            <Text style={styles.backButtonText}>HOME</Text>
           </TouchableOpacity>
-          {/* Page Title */}
           <Text style={styles.pageTitle}>CHEF PANEL</Text>
-          {/* Logout Button: Logs out the chef */}
           <TouchableOpacity onPress={handleLogout} style={styles.backButton}>
             <Text style={styles.backButtonText}>LOGOUT</Text>
           </TouchableOpacity>
         </View>
 
-        {/* ScrollView: Makes the content scrollable */}
         <ScrollView style={styles.contentContainer} showsVerticalScrollIndicator={false}>
-          
-          {/* ADD NEW ITEM CARD: Form for adding a new menu item */}
+
+          {/* Add New Item Card */}
           <View style={styles.chefCard}>
             <Text style={styles.chefTitle}>Add New Item</Text>
             <View style={styles.formContainer}>
@@ -160,35 +353,36 @@ const ChefScreen: React.FC<ChefScreenProps> = ({
                 <Text style={styles.inputLabel}>Item Name</Text>
                 <TextInput
                   style={styles.textInput}
-                  value={name}                          // Current value from state
-                  onChangeText={setName}                // Update state when user types
-                  placeholder="e.g., Steak Frites"      // Hint text
-                  placeholderTextColor="#999"           // Gray hint color
+                  value={name}
+                  onChangeText={setName}
+                  placeholder="e.g., Steak Frites"
+                  placeholderTextColor="#999"
                 />
               </View>
               
-              {/* Description Input - multiline for longer text */}
+              {/* Description Input */}
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Description</Text>
                 <TextInput
-                  style={[styles.textInput, styles.textAreaInput]}  // Apply multiple styles
+                  style={[styles.textInput, styles.textAreaInput]}
                   value={description}
                   onChangeText={setDescription}
                   placeholder="A short description"
                   placeholderTextColor="#999"
-                  multiline                              // Allow multiple lines of text
+                  multiline
                 />
               </View>
               
-              {/* Price Input - numeric keyboard for entering numbers */}
+              {/* Price Input */}
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Price</Text>
+                <Text style={styles.inputLabel}>Price (Numbers only)</Text>
                 <TextInput
                   style={styles.textInput}
                   value={price}
                   onChangeText={setPrice}
                   placeholder="e.g., 12.99"
-                  keyboardType="numeric"                 // Show number keyboard on mobile
+                  keyboardType="numeric"
+                  placeholderTextColor="#999"
                 />
               </View>
               
@@ -199,25 +393,27 @@ const ChefScreen: React.FC<ChefScreenProps> = ({
                   style={styles.textInput}
                   value={category}
                   onChangeText={setCategory}
-                  placeholder="e.g., Starters, Mains"
+                  placeholder="e.g., Starters, Mains, Desserts"
+                  placeholderTextColor="#999"
                 />
               </View>
               
-              {/* Type Selector - Choose between Meal or Beverage */}
+              {/* Type Selector */}
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Type</Text>
                 <View style={styles.typeSelector}>
-                  {/* Meal Button */}
                   <TouchableOpacity
                     style={[
                       styles.typeButton,
-                      type === 'meal' && styles.typeButtonSelected  // Apply selected style if active
+                      type === 'meal' && styles.typeButtonSelected
                     ]}
                     onPress={() => setType('meal')}
                   >
-                    <Text style={styles.typeButtonText}>Meal</Text>
+                    <Text style={[
+                      styles.typeButtonText,
+                      type === 'meal' && styles.typeButtonTextSelected
+                    ]}>Meal</Text>
                   </TouchableOpacity>
-                  {/* Beverage Button */}
                   <TouchableOpacity
                     style={[
                       styles.typeButton,
@@ -225,24 +421,29 @@ const ChefScreen: React.FC<ChefScreenProps> = ({
                     ]}
                     onPress={() => setType('beverage')}
                   >
-                    <Text style={styles.typeButtonText}>Beverage</Text>
+                    <Text style={[
+                      styles.typeButtonText,
+                      type === 'beverage' && styles.typeButtonTextSelected
+                    ]}>Beverage</Text>
                   </TouchableOpacity>
                 </View>
               </View>
               
-              {/* Add Button - Submits the form */}
+              {/* Add Button */}
               <TouchableOpacity style={styles.addMealButton} onPress={handleAddItem}>
                 <Text style={styles.addMealButtonText}>ADD ITEM</Text>
               </TouchableOpacity>
             </View>
           </View>
 
-          {/* MANAGE MENU CARD: Display and manage existing menu items */}
+          {/* Manage Menu Card */}
           <View style={styles.chefCard}>
             <Text style={styles.chefTitle}>Manage Menu</Text>
-            {/* Display list of meals */}
+            <Text style={styles.managementSubtitle}>
+              Total Value: {formatRand(calculateTotalMenuValue(menuItems))} | 
+              Avg Price: {formatRand(calculateAveragePrice(menuItems))}
+            </Text>
             {renderItemList("Meals", meals)}
-            {/* Display list of beverages */}
             {renderItemList("Beverages", beverages)}
           </View>
         </ScrollView>
@@ -251,196 +452,190 @@ const ChefScreen: React.FC<ChefScreenProps> = ({
   );
 };
 
-// Styles: Define how each component should look
+// Styles for the chef screen
 const styles = StyleSheet.create({
-  // backgroundImage: Makes the background image fill the entire screen
   backgroundImage: { 
-    flex: 1,              // Take up all available space
-    width: '100%',        // Full width
-    height: '100%'        // Full height
+    flex: 1,
+    width: '100%',
+    height: '100%'
   },
-  // overlay: A dark semi-transparent layer on top of the background
   overlay: { 
-    ...StyleSheet.absoluteFillObject,        // Fill the entire parent
-    backgroundColor: 'rgba(0,0,0,0.7)'       // Black with 70% opacity
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.7)'
   },
-  // headerContainer: Container for the back button, title, and logout button
   headerContainer: { 
-    flexDirection: 'row',                    // Arrange children horizontally
-    justifyContent: 'space-between',         // Space items apart
-    alignItems: 'center',                    // Center vertically
-    paddingHorizontal: 20,                   // 20 units padding on sides
-    paddingTop: Platform.OS === 'ios' ? 50 : 40,  // More padding on iOS for notch
-    paddingBottom: 15                        // Bottom padding
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'ios' ? 50 : 40,
+    paddingBottom: 15
   },
-  // backButton: Clickable area for back/logout buttons
   backButton: { 
-    padding: 10           // 10 units of padding to make button easier to press
+    padding: 10
   },
-  // backButtonText: Style for back and logout button text
   backButtonText: { 
-    color: '#fff',        // White color
-    fontSize: 16,         // Text size
-    fontWeight: 'bold'    // Bold text
+    color: '#fff',
+    fontSize: 24,
+    fontWeight: 'bold'
   },
-  // pageTitle: Style for the "CHEF PANEL" title
   pageTitle: { 
-    color: '#fff',        // White color
-    fontSize: 22,         // Text size
-    fontWeight: 'bold'    // Bold text
+    color: '#fff',
+    fontSize: 32,
+    fontWeight: 'bold'
   },
-  // contentContainer: Container for the scrollable content
   contentContainer: { 
-    flex: 1,              // Take up all available space
-    padding: 20           // 20 units of padding on all sides
+    flex: 1,
+    padding: 20
   },
-  // chefCard: Container for form and menu management sections
   chefCard: { 
-    backgroundColor: 'rgba(0,0,0,0.7)',  // Semi-transparent black background
-    borderRadius: 20,                     // Rounded corners
-    padding: 25,                          // 25 units of internal padding
-    marginBottom: 30,                     // 30 units of space below
-    borderColor: '#FFD700',               // Gold border
-    borderWidth: 1                        // 1 unit thick border
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderRadius: 20,
+    padding: 25,
+    marginBottom: 30,
+    borderColor: '#FFD700',
+    borderWidth: 1
   },
-  // chefTitle: Style for section headings ("Add New Item", "Manage Menu")
   chefTitle: { 
-    fontSize: 40,         // Very large text
-    fontWeight: 'bold',   // Bold text
-    color: '#FFD700',     // Gold color
-    marginBottom: 20,     // 20 units of space below
-    textAlign: 'center'   // Center the text
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#FFD700',
+    marginBottom: 20,
+    textAlign: 'center'
   },
-  // formContainer: Container that wraps all form elements
+  managementSubtitle: {
+    fontSize: 24,
+    color: '#FFD700',
+    textAlign: 'center',
+    marginBottom: 15,
+    fontStyle: 'italic'
+  },
   formContainer: { 
-    width: '100%'         // Take up full width
+    width: '100%'
   },
-  // inputGroup: Container for each input field (label + input)
   inputGroup: { 
-    marginBottom: 20      // 20 units of space below each group
+    marginBottom: 20
   },
-  // inputLabel: Style for input field labels
   inputLabel: { 
-    fontSize: 24,         // Text size
-    color: '#FFD700',     // Gold color
-    marginBottom: 10      // 10 units of space below
+    fontSize: 24,
+    color: '#FFD700',
+    marginBottom: 8
   },
-  // textInput: Style for text input fields
   textInput: { 
-    backgroundColor: 'rgba(0,0,0,0.3)',  // Semi-transparent black background
-    color: '#fff',                        // White text
-    borderRadius: 10,                     // Rounded corners
-    paddingHorizontal: 15,                // 15 units horizontal padding
-    paddingVertical: 12,                  // 12 units vertical padding
-    fontSize: 16,                         // Text size
-    borderWidth: 1,                       // 1 unit border thickness
-    borderColor: '#FFD700'                // Gold border
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    color: '#fff',
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#FFD700'
   },
-  // textAreaInput: Additional style for multiline description field
   textAreaInput: { 
-    height: 100,                   // Fixed height for multiline input
-    textAlignVertical: 'top'       // Start text at the top (Android)
+    height: 100,
+    textAlignVertical: 'top'
   },
-  // typeSelector: Container for meal/beverage selector buttons
   typeSelector: { 
-    flexDirection: 'row',          // Arrange buttons horizontally
-    justifyContent: 'space-around', // Space buttons evenly
-    marginVertical: 10             // 10 units vertical margin
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginVertical: 10
   },
-  // typeButton: Style for type selector buttons (Meal/Beverage)
   typeButton: { 
-    paddingVertical: 12,           // 12 units vertical padding
-    paddingHorizontal: 20,         // 20 units horizontal padding
-    borderRadius: 25,              // Rounded corners
-    borderWidth: 1,                // 1 unit border thickness
-    borderColor: '#FFD700'         // Gold border
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 25,
+    borderWidth: 2,
+    borderColor: '#FFD700',
+    backgroundColor: 'transparent'
   },
-  // typeButtonSelected: Additional style when button is selected
   typeButtonSelected: { 
-    backgroundColor: '#FFD700'     // Gold background when selected
+    backgroundColor: '#FFD700'
   },
-  // typeButtonText: Style for text inside type buttons
   typeButtonText: { 
-    color: '#FFD700',              // Gold color (changes when selected)
-    fontWeight: 'bold'             // Bold text
+    color: '#FFD700',
+    fontWeight: 'bold',
+    fontSize: 24,
   },
-  // addMealButton: Style for the "ADD ITEM" button
+  typeButtonTextSelected: {
+    color: '#000'
+  },
   addMealButton: { 
-    backgroundColor: '#C41E3A',    // Dark red background
-    paddingVertical: 18,           // 18 units vertical padding
-    borderRadius: 10,              // Rounded corners
-    alignItems: 'center',          // Center text horizontally
-    marginTop: 15                  // 15 units space above
+    backgroundColor: '#C41E3A',
+    paddingVertical: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 15
   },
-  // addMealButtonText: Style for text inside add button
   addMealButtonText: { 
-    color: '#fff',                 // White text
-    fontSize: 18,                  // Text size
-    fontWeight: 'bold'             // Bold text
+    color: '#fff',
+    fontSize: 24,
+    fontWeight: 'bold'
   },
-  // managementSection: Container for meal/beverage list sections
   managementSection: { 
-    marginTop: 20                  // 20 units space above
+    marginTop: 20
   },
-  // managementCategoryTitle: Style for "Meals" and "Beverages" headings
   managementCategoryTitle: { 
-    fontSize: 22,                  // Text size
-    fontWeight: 'bold',            // Bold text
-    color: '#FFD700',              // Gold color
-    marginBottom: 15,              // 15 units space below
-    borderBottomColor: '#FFD700',  // Gold bottom border
-    borderBottomWidth: 1,          // 1 unit thick bottom border
-    paddingBottom: 5               // 5 units padding before border
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#FFD700',
+    marginBottom: 15,
+    borderBottomColor: '#FFD700',
+    borderBottomWidth: 1,
+    paddingBottom: 5
   },
-  // mealItem: Container for each menu item in the list
+  emptyMessage: {
+    color: '#999',
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginVertical: 10
+  },
   mealItem: { 
-    backgroundColor: 'rgba(0,0,0,0.3)',  // Semi-transparent black background
-    borderRadius: 10,                     // Rounded corners
-    padding: 15,                          // 15 units internal padding
-    flexDirection: 'row',                 // Arrange children horizontally
-    justifyContent: 'space-between',      // Space apart (info on left, button on right)
-    alignItems: 'center',                 // Center vertically
-    marginBottom: 10,                     // 10 units space below
-    borderColor: '#FFD700',               // Gold border
-    borderWidth: 1                        // 1 unit thick border
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    borderRadius: 10,
+    padding: 15,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+    borderColor: '#FFD700',
+    borderWidth: 1
   },
-  // mealInfo: Container for item information (name, description, price)
   mealInfo: { 
-    flex: 1,              // Take up remaining space
-    marginRight: 10       // 10 units space on right (before button)
+    flex: 1,
+    marginRight: 10
   },
-  // mealName: Style for item names
   mealName: { 
-    color: '#FFD700',     // Gold color
-    fontSize: 32,         // Large text
-    fontWeight: 'bold'    // Bold text
+    color: '#FFD700',
+    fontSize: 32,
+    fontWeight: 'bold'
   },
-  // mealDescription: Style for item descriptions
   mealDescription: { 
-    color: '#eee',        // Off-white color
-    fontSize: 24,         // Text size
-    fontStyle: 'italic',  // Italic text
-    marginVertical: 4     // 4 units vertical margin
+    color: '#eee',
+    fontSize: 24,
+    fontStyle: 'italic',
+    marginVertical: 4
   },
-  // mealPrice: Style for item prices
   mealPrice: { 
-    color: '#fff',        // White color
-    fontSize: 24          // Text size
+    color: '#fff',
+    fontSize: 24,
+    fontWeight: 'bold'
   },
-  // removeMealButton: Style for the remove button
+  mealCategory: {
+    color: '#13b3c2ff',
+    fontSize: 24,
+    marginTop: 4
+  },
   removeMealButton: { 
-    backgroundColor: '#C41E3A',  // Dark red background
-    paddingVertical: 10,          // 10 units vertical padding
-    paddingHorizontal: 15,        // 15 units horizontal padding
-    borderRadius: 8               // Rounded corners
+    backgroundColor: '#C41E3A',
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 8
   },
-  // removeMealButtonText: Style for text inside remove button
   removeMealButtonText: { 
-    color: '#fff',                // White text
-    fontWeight: 'bold',           // Bold text
-    fontSize: 24                  // Text size
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 24
   },
 });
 
-// Export the ChefScreen component so it can be used in other files
 export default ChefScreen;

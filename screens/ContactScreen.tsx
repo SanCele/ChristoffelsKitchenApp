@@ -1,13 +1,4 @@
-// Import React library - needed for creating React components
 import React from 'react';
-// Import React Native components for building the user interface
-// View: A container for other components
-// Text: Component for displaying text
-// TouchableOpacity: A touchable button that becomes slightly transparent when pressed
-// ImageBackground: Component that allows you to use an image as a background
-// ScrollView: A scrollable container for content that may not fit on one screen
-// StyleSheet: For creating organized and efficient styles
-// Platform: Helps detect if the app is running on iOS or Android
 import { View, Text, TouchableOpacity, ImageBackground, ScrollView, StyleSheet, Platform } from 'react-native';
 
 // Define the props (properties) that this component expects to receive
@@ -16,7 +7,6 @@ interface ContactScreenProps {
   setCurrentScreen: (screen: string) => void;
 }
 
-// ContactScreen Component
 // This screen displays all the restaurant's contact information including:
 // - Physical address
 // - Phone number
@@ -92,81 +82,83 @@ const ContactScreen: React.FC<ContactScreenProps> = ({ setCurrentScreen }) => (
 
 // Styles: Define how each component should look
 const styles = StyleSheet.create({
-  // backgroundImage: Makes the background image fill the entire screen
+  
   backgroundImage: {
-    flex: 1,              // Take up all available space
-    width: '100%',        // Full width of the screen
-    height: '100%',       // Full height of the screen
+    flex: 1,              
+    width: '100%',        
+    height: '100%',       
   },
   // overlay: A dark semi-transparent layer on top of the background
   overlay: {
-    ...StyleSheet.absoluteFillObject,      // Spread to fill parent completely
-    backgroundColor: 'rgba(0,0,0,0.7)',     // Black with 70% opacity (semi-transparent)
+    ...StyleSheet.absoluteFillObject,      
+    backgroundColor: 'rgba(0,0,0,0.7)',     
   },
   // headerContainer: Container for the back button and page title
   headerContainer: {
-    flexDirection: 'row',                   // Arrange children horizontally (side by side)
-    justifyContent: 'space-between',        // Spread children apart with space between
-    alignItems: 'center',                   // Center children vertically
-    paddingHorizontal: 20,                  // 20 units of space on left and right
-    paddingTop: Platform.OS === 'ios' ? 50 : 40,  // More space on top for iOS (for notch)
-    paddingBottom: 15,                      // 15 units of space on bottom
+    flexDirection: 'row',                   
+    justifyContent: 'space-between',       
+    alignItems: 'center',                   
+    paddingHorizontal: 20,                  
+    paddingTop: Platform.OS === 'ios' ? 50 : 40,  
+    paddingBottom: 15,                      
   },
   // backButton: Clickable area for the back button
   backButton: {
-    padding: 10,          // 10 units of space inside the button (makes it easier to press)
+    padding: 10,          
   },
   // backButtonText: Style for the text inside the back button
   backButtonText: {
-    color: '#FFD700',     // Gold color to match the restaurant's theme
-    fontSize: 16,         // Size of the text
-    fontWeight: 'bold',   // Make the text thick and bold
+    color: '#FFD700',     
+    fontSize: 24,         
+    fontWeight: 'bold',   
   },
   // pageTitle: Style for the "CONTACT US" title
   pageTitle: {
-    color: '#fff',        // White color for visibility
-    fontSize: 40,         // Large text size for prominence
-    fontWeight: 'bold',   // Bold text for emphasis
-    flex: 1,              // Take up remaining space
-    textAlign: 'center',  // Center the text horizontally
+    color: '#fff',        
+    fontSize: 40,         
+    fontWeight: 'bold',   
+    flex: 1,              
+    textAlign: 'center',  
   },
   // contentContainer: Container for the scrollable content
   contentContainer: {
-    flex: 1,              // Take up all available space
-    padding: 20,          // 20 units of space on all sides
+    flex: 1,              
+    padding: 20,          
   },
   // contactCard: The main content box with contact information
   contactCard: {
-    backgroundColor: 'rgba(0,0,0,0.7)',  // Semi-transparent black background
-    borderRadius: 20,                     // Rounded corners (20 units)
-    padding: 25,                          // 25 units of space inside the card
-    borderColor: '#FFD700',               // Gold border color
-    borderWidth: 1,                       // 1 unit thick border
+    backgroundColor: 'rgba(0,0,0,0.7)',  
+    borderRadius: 20,                    
+    padding: 25,                          
+    borderColor: '#FFD700',              
+    borderWidth: 1,                       
   },
   // contactTitle: Style for the "Get in Touch" heading
   contactTitle: {
-    fontSize: 40,         // Very large text
-    fontWeight: 'bold',   // Bold for emphasis
-    color: '#FFD700',     // Gold color
-    marginBottom: 30,     // 30 units of space below
-    textAlign: 'center',  // Center the text
+    fontSize: 40,         
+    fontWeight: 'bold',   
+    color: '#FFD700',     
+    marginBottom: 30,     
+    textAlign: 'center',  
   },
   // contactSection: Container for each contact information section
   contactSection: {
-    marginBottom: 25,     // 25 units of space below each section
+    marginBottom: 25,     
   },
   // contactHeading: Style for section headings (LOCATION, PHONE, etc.)
   contactHeading: {
-    fontSize: 32,         // Large text size
-    fontWeight: 'bold',   // Bold text
-    color: '#FFD700',     // Gold color
-    marginBottom: 8,      // 8 units of space below the heading
+    fontSize: 32,        
+    fontWeight: 'bold',   
+    color: '#FFD700',     
+    marginBottom: 8,      
+    textAlign: 'center',
   },
   // contactDetail: Style for the actual contact information
   contactDetail: {
-    fontSize: 24,         // Medium-large text size
-    color: '#fff',        // White color for visibility
-    lineHeight: 24,       // Space between lines of text
+    fontSize: 24,         
+    color: '#fff',       
+    lineHeight: 24,       
+    textAlign: 'center',
   },
 });
 
