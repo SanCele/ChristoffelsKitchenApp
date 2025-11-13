@@ -7,7 +7,7 @@ chefPassword: Christoffel2025
 - A logout button was added for the cutsomer whenever is loged in and is done with ordering their order.
 - A Modal to display the success message of the order or to notify the user that their order has been successfully purchased.
 - Change in font sizes so most of the text ia readable and color of the ategories text on the chef screen to blue.
-- Courses separated into categories and each category is displayed with the average price.
+- Courses separated into categories and each category is displayed with the average price.eg. for food (Staters, Main and Desert) and drinks(Hot drinks, Cold Drink and Alcoholic)
 - The number of meals and drinks available which are both five.
 - Filter buttons that filter meals and drinks by prices (Budget <= 20 && Expensive > 20)
 - Removed the cart function from the chef screen
@@ -55,6 +55,16 @@ chefPassword: Christoffel2025
 **Cart Screen**
 <img width="1918" height="868" alt="chris cart screen" src="https://github.com/user-attachments/assets/15198cee-8342-4437-a85d-c35588658338" />
 <img width="1918" height="862" alt="chris success notification" src="https://github.com/user-attachments/assets/da5bdc6d-d94c-44f3-86de-c4f89bbd1317" />
+
+**References**
+Iman Musa, 2024. TypeScript Tutorial For Beginners: TypeScript Crash Course [video – online]
+
+Available at: <https://youtu.be/xpaeUsyE9vw?si=f5wMRWJXNdzaP9Dt> [Accessed 15 October 2025].
+
+Academind, 2022. React Native Crash Course | Build a Complete App [video – online]
+
+Available at: <https://youtu.be/VozPNrt-LfE?si=nXylkgHgws2V8E5j> [Accessed 17 October 2025].
+
 
 
 
